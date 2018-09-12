@@ -19,9 +19,9 @@ limitations under the License.
 package fake
 
 import (
-	clientset "github.com/trstringer/k8s-controller-custom-resource/pkg/client/clientset/versioned"
-	trstringerv1 "github.com/trstringer/k8s-controller-custom-resource/pkg/client/clientset/versioned/typed/myresource/v1"
-	faketrstringerv1 "github.com/trstringer/k8s-controller-custom-resource/pkg/client/clientset/versioned/typed/myresource/v1/fake"
+	clientset "github.com/resouer/k8s-controller-custom-resource/pkg/client/clientset/versioned"
+	samplecrdv1 "github.com/resouer/k8s-controller-custom-resource/pkg/client/clientset/versioned/typed/samplecrd/v1"
+	fakesamplecrdv1 "github.com/resouer/k8s-controller-custom-resource/pkg/client/clientset/versioned/typed/samplecrd/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -41,9 +41,10 @@ func NewSimpleClientset(objects ...runtime.Object) *Clientset {
 		}
 	}
 
-	fakePtr := testing.Fake{}
-	fakePtr.AddReactor("*", "*", testing.ObjectReaction(o))
-	fakePtr.AddWatchReactor("*", func(action testing.Action) (handled bool, ret watch.Interface, err error) {
+	cs := &Clientset{}
+	cs.discovery = &fakediscovery.FakeDiscovery{Fake: &cs.Fake}
+	cs.AddReactor("*", "*", testing.ObjectReaction(o))
+	cs.AddWatchReactor("*", func(action testing.Action) (handled bool, ret watch.Interface, err error) {
 		gvr := action.GetResource()
 		ns := action.GetNamespace()
 		watch, err := o.Watch(gvr, ns)
@@ -53,7 +54,7 @@ func NewSimpleClientset(objects ...runtime.Object) *Clientset {
 		return true, watch, nil
 	})
 
-	return &Clientset{fakePtr, &fakediscovery.FakeDiscovery{Fake: &fakePtr}}
+	return cs
 }
 
 // Clientset implements clientset.Interface. Meant to be embedded into a
@@ -70,12 +71,12 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// TrstringerV1 retrieves the TrstringerV1Client
-func (c *Clientset) TrstringerV1() trstringerv1.TrstringerV1Interface {
-	return &faketrstringerv1.FakeTrstringerV1{Fake: &c.Fake}
+// SamplecrdV1 retrieves the SamplecrdV1Client
+func (c *Clientset) SamplecrdV1() samplecrdv1.SamplecrdV1Interface {
+	return &fakesamplecrdv1.FakeSamplecrdV1{Fake: &c.Fake}
 }
 
-// Trstringer retrieves the TrstringerV1Client
-func (c *Clientset) Trstringer() trstringerv1.TrstringerV1Interface {
-	return &faketrstringerv1.FakeTrstringerV1{Fake: &c.Fake}
+// Samplecrd retrieves the SamplecrdV1Client
+func (c *Clientset) Samplecrd() samplecrdv1.SamplecrdV1Interface {
+	return &fakesamplecrdv1.FakeSamplecrdV1{Fake: &c.Fake}
 }
