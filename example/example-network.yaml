@@ -2,6 +2,7 @@ apiVersion: samplecrd.k8s.io/v1
 kind: Network
 metadata:
   name: example-network
+  namespace: default  # 如果需要指定命名空间，可以添加这一行
 spec:
-  cidr: "192.168.0.0/16"
-  gateway: "192.168.0.1"
+  cidr: "192.168.0.0/16"   # 网络地址
+  gateway: "192.168.0.1"   # 网关地址
